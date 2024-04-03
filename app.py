@@ -10,7 +10,7 @@ classifier_model = joblib.load('ridge_classifier_model.joblib')
 
 # Load the scaler if available
 try:
-    scaler = joblib.load('scaler_updated.joblib')
+    scaler = joblib.load('scalar_updated.joblib')
 except FileNotFoundError:
     st.error("Scaler file not found. Please check the file and try again.")
     st.stop()
