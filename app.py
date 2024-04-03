@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 import folium
+import numpy
 from streamlit_folium import folium_static
 from sklearn.preprocessing import StandardScaler
 
