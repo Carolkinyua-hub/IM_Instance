@@ -12,6 +12,13 @@ except FileNotFoundError:
     st.error("Model or scaler file not found. Please check the files and try again.")
     st.stop()
 
+
+# Fit the loaded scaler to the training data
+scaler.fit(X_train)
+
+# Transform the validation data using the fitted scaler
+X_validation_scaled = scaler.transform(X_validation)
+
 # Function for data preprocessing
 def preprocess_data(data):
     # Ensure the expected columns are present
