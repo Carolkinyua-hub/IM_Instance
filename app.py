@@ -4,55 +4,45 @@ import joblib
 import folium
 from streamlit_folium import folium_static
 
-# Load the trained model and the pre-fitted scaler
-try:
-    classifier_model = joblib.load('ridge_classifier_model.joblib')
-    scaler = joblib.load('scalar_updated.joblib')
-except FileNotFoundError:
-    st.error("Model or scaler file not found. Please check the files and try again.")
-    st.stop()
-
-# Assuming your full dataset is prepared in variables X_train and X_validation
-# Fit the loaded scaler to the training data
-scaler.fit(X_train)
-
-# Transform the validation data using the fitted scaler
-X_validation_scaled = scaler.transform(X_validation)
+# Function to load the model and scaler
+def load_model_and_scaler(model_path, scaler_path):
+    try:
+        model = joblib.load('ridge_classifier_model.joblib')
+        scaler = joblib.load('scaler_updated.joblib')
+        return model, scaler
+    except FileNotFoundError as e:
+        st.error(f"File not found: {e}")
+        st.stop()
 
 # Function for data preprocessing
-def preprocess_data(data):
-    # Ensure the expected columns are present
+def preprocess_data(data, scaler):
+    # Define the expected columns
     expected_cols = {'number_of_pentavalent_doses_received', 'number_of_pneumococcal_doses_received',
                      'number_of_rotavirus_doses_received', 'number_of_measles_doses_received',
                      'number_of_polio_doses_received', 'latitude', 'longitude'}
+    # Check for missing columns
     if not expected_cols.issubset(data.columns):
         missing_cols = expected_cols - set(data.columns)
         st.error(f"Missing columns in the uploaded file: {', '.join(missing_cols)}")
         return None
 
-    # Drop any missing values
+    # Drop any missing values in the expected columns
     data_processed = data.dropna(subset=expected_cols)
-
-    # Convert numerical_cols to a list
+    
+    # Select numerical columns for scaling
     numerical_cols = list(expected_cols - {'latitude', 'longitude'})
-
-    # Convert data_processed[numerical_cols] to a DataFrame
-    data_processed_df = pd.DataFrame(data_processed[numerical_cols])
-
-    # Transform the numerical columns using the fitted scaler
-    data_processed_df[numerical_cols] = scaler.transform(data_processed_df)
-
-    # Assign the transformed values back to data_processed
-    data_processed[numerical_cols] = data_processed_df
-
+    data_processed[numerical_cols] = scaler.transform(data_processed[numerical_cols])
+    
     return data_processed
 
 def main():
     st.title('Vaccination Status Prediction and Visualization')
 
-    # Upload validation dataset
-    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+    # Load the trained model and scaler
+    classifier_model, scaler = load_model_and_scaler('ridge_classifier_model.joblib', 'scalar_updated.joblib')
 
+    # Upload the validation dataset
+    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         
@@ -60,13 +50,13 @@ def main():
         st.write("Uploaded Dataset (first 5 rows):")
         st.write(df.head())
 
-        # Preprocess data
-        df_processed = preprocess_data(df)
+        # Preprocess the data
+        df_processed = preprocess_data(df, scaler)
         if df_processed is None:  # Stop further execution if there's an issue with the data
             return
 
         # Make predictions
-        y_pred = classifier_model.predict(df_processed)
+        y_pred = classifier_model.predict(df_processed.drop(['latitude', 'longitude'], axis=1))
         df_processed['Predicted_Vaccination_Status'] = y_pred
 
         # Mapping predictions to status labels
@@ -76,7 +66,7 @@ def main():
         st.write("Processed and Predicted Data:")
         st.write(df_processed)
 
-        # Filter defaulters
+        # Filter defaulters for visualization
         defaulters_df = df_processed[df_processed['Predicted_Status'].isin(['Full_Defaulter', 'Partial_Defaulter'])]
 
         # Visualization
