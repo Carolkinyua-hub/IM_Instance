@@ -3,23 +3,18 @@ import pandas as pd
 import joblib
 import folium
 from streamlit_folium import folium_static
+from sklearn.preprocessing import StandardScaler
 
-# Load the trained model and the pre-fitted scaler
+# Load the trained model
+classifier_model = joblib.load('ridge_classifier_model.joblib')
+
+# Load the scaler if available
 try:
-    classifier_model = joblib.load('ridge_classifier_model.joblib')
-    scaler = joblib.load('scalar_updated.joblib')
+    scaler = joblib.load('scaler_updated.joblib')
 except FileNotFoundError:
-    st.error("Model or scaler file not found. Please check the files and try again.")
+    st.error("Scaler file not found. Please check the file and try again.")
     st.stop()
 
-# Assuming your full dataset is prepared in variables X_train and X_validation
-# Fit the loaded scaler to the training data
-scaler.fit(X_train)
-
-# Transform the validation data using the fitted scaler
-X_validation_scaled = scaler.transform(X_validation)
-
-# Function for data preprocessing
 def preprocess_data(data):
     # Ensure the expected columns are present
     expected_cols = {'number_of_pentavalent_doses_received', 'number_of_pneumococcal_doses_received',
