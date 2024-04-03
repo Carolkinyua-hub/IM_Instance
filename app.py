@@ -5,21 +5,29 @@ import folium
 from streamlit_folium import folium_static
 
 # Load the trained model and the pre-fitted scaler
-classifier_model = joblib.load('ridge_classifier_model.joblib')
-scaler = joblib.load('scaler_updated.joblib')  # Assuming you have saved your scaler the same way as your model
+try:
+    classifier_model = joblib.load('ridge_classifier_model.joblib')
+    scaler = joblib.load('scaler_updated.joblib')
+except FileNotFoundError:
+    st.error("Model or scaler file not found. Please check the files and try again.")
+    st.stop()
 
 # Function for data preprocessing
 def preprocess_data(data):
-    # Copy the data to avoid inplace modification
-    data_processed = data.copy()
-    
+    # Ensure the expected columns are present
+    expected_cols = {'number_of_pentavalent_doses_received', 'number_of_pneumococcal_doses_received',
+                     'number_of_rotavirus_doses_received', 'number_of_measles_doses_received',
+                     'number_of_polio_doses_received', 'latitude', 'longitude'}
+    if not expected_cols.issubset(data.columns):
+        missing_cols = expected_cols - set(data.columns)
+        st.error(f"Missing columns in the uploaded file: {', '.join(missing_cols)}")
+        return None
+
     # Drop any missing values
-    data_processed.dropna(inplace=True)
+    data_processed = data.dropna(subset=expected_cols)
 
     # Perform feature scaling on numerical columns
-    numerical_cols = ['number_of_pentavalent_doses_received', 'number_of_pneumococcal_doses_received', 
-                      'number_of_rotavirus_doses_received', 'number_of_measles_doses_received', 
-                      'number_of_polio_doses_received']
+    numerical_cols = list(expected_cols - {'latitude', 'longitude'})
     data_processed[numerical_cols] = scaler.transform(data_processed[numerical_cols])
     
     return data_processed
@@ -28,15 +36,19 @@ def main():
     st.title('Vaccination Status Prediction and Visualization')
 
     # Upload validation dataset
-    st.subheader('Upload Validation Dataset')
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
-        st.write(df)
+        
+        # Display the first few rows of the uploaded dataset
+        st.write("Uploaded Dataset (first 5 rows):")
+        st.write(df.head())
 
         # Preprocess data
         df_processed = preprocess_data(df)
+        if df_processed is None:  # Stop further execution if there's an issue with the data
+            return
 
         # Make predictions
         y_pred = classifier_model.predict(df_processed)
@@ -44,7 +56,10 @@ def main():
 
         # Mapping predictions to status labels
         status_mapping = {0: 'Full_Defaulter', 1: 'Partial_Defaulter', 2: 'Non_Defaulter'}
-        df_processed['Predicted_Status'] = [status_mapping[pred] for pred in y_pred]
+        df_processed['Predicted_Status'] = df_processed['Predicted_Vaccination_Status'].map(status_mapping)
+
+        st.write("Processed and Predicted Data:")
+        st.write(df_processed)
 
         # Filter defaulters
         defaulters_df = df_processed[df_processed['Predicted_Status'].isin(['Full_Defaulter', 'Partial_Defaulter'])]
