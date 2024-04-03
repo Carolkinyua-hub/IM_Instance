@@ -7,7 +7,7 @@ from streamlit_folium import folium_static
 # Load the trained model and the pre-fitted scaler
 try:
     classifier_model = joblib.load('ridge_classifier_model.joblib')
-    scaler = joblib.load('X_validation_scaled (1).joblib')
+    scaler = joblib.load('scalar_updated.joblib')
 except FileNotFoundError:
     st.error("Model or scaler file not found. Please check the files and try again.")
     st.stop()
