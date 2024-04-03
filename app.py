@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from sklearn.externals import joblib
+import joblib
 import folium
 from streamlit_folium import folium_static
 
