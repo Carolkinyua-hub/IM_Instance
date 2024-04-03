@@ -8,7 +8,7 @@ from streamlit_folium import folium_static
 def load_model_and_scaler(model_path, scaler_path):
     try:
         model = joblib.load('ridge_classifier_model.joblib')
-        scaler = joblib.load('scaler_updated.joblib')
+        scaler = joblib.load('scalar_updated.joblib')
         return model, scaler
     except FileNotFoundError as e:
         st.error(f"File not found: {e}")
