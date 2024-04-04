@@ -43,8 +43,8 @@ def main():
     st.title('Vaccination Status Prediction and Visualization')
     
     # Update these paths to where your model and scaler are located
-    model_path = 'path/to/your/ridge_classifier_model.joblib'
-    scaler_path = 'path/to/your/scaler.joblib'
+    model_path = 'ridge_classifier_model.joblib'
+    scaler_path = 'new_scalar.joblib'
 
     classifier_model, scaler = load_model_and_scaler(model_path, scaler_path)
     
