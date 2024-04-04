@@ -28,12 +28,11 @@ if uploaded_file is not None:
 
     # Assuming the uploaded file is a CSV, adjust for other formats
     # Select columns for prediction
-    features_for_prediction = df2[['number_of_polio_doses_received',
-                                  'number_of_pentavalent_doses_received',
-                                  'number_of_pneumococcal_doses_received',
-                                  'number_of_rotavirus_doses_received',
-                                  'latitude', 'longitude',
-                                  'number_of_measles_doses_received']]
+    features_for_prediction = df2[[ 'number_of_pentavalent_doses_received',
+       'number_of_pneumococcal_doses_received',
+       'number_of_rotavirus_doses_received',
+       'number_of_measles_doses_received', 'number_of_polio_doses_received','latitude',
+       'longitude']]
 
     # Scale features using the scaler object
     features_scaled = scaler.transform(features_for_prediction)
