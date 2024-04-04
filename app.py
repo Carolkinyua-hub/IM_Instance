@@ -16,7 +16,6 @@ def load_model_and_scaler(model_path, scaler_path):
         st.error(f"File not found: {e}")
         st.stop()
 
-# Function for data preprocessing
 def preprocess_data(data, scaler):
     expected_cols = {'number_of_pentavalent_doses_received', 'number_of_pneumococcal_doses_received',
                      'number_of_rotavirus_doses_received', 'number_of_measles_doses_received',
@@ -28,8 +27,20 @@ def preprocess_data(data, scaler):
 
     data_processed = data.dropna(subset=expected_cols)
     
-    # Define numerical columns, excluding 'latitude' and 'longitude'
+    # Define numerical columns for scaling, exclude 'latitude' and 'longitude'
     numerical_cols = list(expected_cols - {'latitude', 'longitude'})
+    
+    # Ensure all selected columns are numeric
+    if not all(pd.api.types.is_numeric_dtype(data_processed[col]) for col in numerical_cols):
+        st.error("One or more selected columns are not numeric.")
+        return None
+    
+    # Transform the numerical columns using the fitted scaler
+    data_processed[numerical_cols] = scaler.transform(data_processed[numerical_cols])
+    
+    # Include 'latitude' and 'longitude' in the returned DataFrame if needed for other purposes
+    return data_processed
+
 
     # Ensure all selected columns are numeric
     if not all(pd.api.types.is_numeric_dtype(data_processed[col]) for col in numerical_cols):
