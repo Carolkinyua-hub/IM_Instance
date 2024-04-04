@@ -18,9 +18,11 @@ def load_model_and_scaler(model_path, scaler_path):
 def preprocess_data(data, scaler):
     # Assuming these are the features your model was trained on
     # Exclude 'latitude' and 'longitude' if they were not part of the training features
-    feature_cols = ['number_of_pentavalent_doses_received', 'number_of_pneumococcal_doses_received', 
-                      'number_of_rotavirus_doses_received', 'number_of_measles_doses_received', 
-                      'number_of_polio_doses_received','longitude','latitude']  # Update with your actual feature names
+    feature_cols = [ 'number_of_pentavalent_doses_received',
+       'number_of_pneumococcal_doses_received',
+       'number_of_rotavirus_doses_received',
+       'number_of_measles_doses_received', 'number_of_polio_doses_received','latitude',
+       'longitude']  # Update with your actual feature names
     
     if set(feature_cols).issubset(data.columns):
         data_features = data[feature_cols]
@@ -90,9 +92,11 @@ def main():
             return
         
         # Assuming the model predicts a numeric status which needs mapping to a categorical status
-        features_for_prediction = df_processed[['number_of_pentavalent_doses_received', 'number_of_pneumococcal_doses_received', 
-                      'number_of_rotavirus_doses_received', 'number_of_measles_doses_received', 
-                      'number_of_polio_doses_received','longitude','latitude']]  # Use actual feature names
+        features_for_prediction = df_processed[[ 'number_of_pentavalent_doses_received',
+       'number_of_pneumococcal_doses_received',
+       'number_of_rotavirus_doses_received',
+       'number_of_measles_doses_received', 'number_of_polio_doses_received','latitude',
+       'longitude']]  # Use actual feature names
         y_pred = classifier_model.predict(features_for_prediction)
         
         visualize_vaccination_status(df_processed, y_pred)
