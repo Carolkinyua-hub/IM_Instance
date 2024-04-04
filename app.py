@@ -61,7 +61,11 @@ def main():
 
         # Assuming your model does not use 'latitude' and 'longitude' for prediction
         # Ensure 'your_features_here' matches the exact features list used during model training
-        features_for_prediction = df_processed[['your_features_here']]
+        features_for_prediction = df_processed[['number_of_pentavalent_doses_received',
+       'number_of_pneumococcal_doses_received',
+       'number_of_rotavirus_doses_received',
+       'number_of_measles_doses_received', 'number_of_polio_doses_received','latitude',
+       'longitude']]
         
         y_pred = classifier_model.predict(features_for_prediction)
         
