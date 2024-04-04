@@ -73,7 +73,7 @@ def main():
     st.title('Vaccination Status Prediction and Visualization')
     
     # Load the model and scaler
-    classifier_model, scaler = load_model_and_scaler('ridge_classifier_model.joblib', 'scaler.joblib')
+    classifier_model, scaler = load_model_and_scaler('ridge_classifier_model.joblib', 'new_scalar_updated.joblib')
     
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
     if uploaded_file is not None:
