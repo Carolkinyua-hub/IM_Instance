@@ -8,52 +8,48 @@ def load_model_and_scaler(model_path, scaler_path):
     try:
         classifier_model = joblib.load(model_path)
         scaler = joblib.load(scaler_path)
-        if not hasattr(scaler, 'transform'):
-            raise ValueError("Loaded scaler object does not have a transform method.")
         return classifier_model, scaler
     except FileNotFoundError as e:
         st.error(f"File not found: {e}")
         st.stop()
 
 def preprocess_data(data, scaler):
-    # Specify the features your model was trained with, excluding 'latitude' and 'longitude'
-    numerical_features = [
-        'number_of_pentavalent_doses_received', 'number_of_pneumococcal_doses_received',
-        'number_of_rotavirus_doses_received', 'number_of_measles_doses_received',
-        'number_of_polio_doses_received'
-    ]
-
-    # Check for missing columns
-    missing_cols = set(numerical_features) - set(data.columns)
+    # Replace 'your_features_here' with the actual features used during model training, excluding 'latitude' and 'longitude'
+    feature_cols = ['your_features_here']
+    
+    # Check for missing columns in the uploaded data
+    missing_cols = set(feature_cols) - set(data.columns)
     if missing_cols:
-        st.error(f"Missing columns in the uploaded file: {', '.join(missing_cols)}")
+        st.error(f"Missing columns in the uploaded data: {', '.join(missing_cols)}")
         return None
 
-    # Select only the numerical features for scaling
-    data_for_scaling = data[numerical_features]
-    
-    # Ensure all selected columns are numeric
-    if not all(pd.api.types.is_numeric_dtype(data_for_scaling[col]) for col in numerical_features):
-        st.error("One or more selected columns are not numeric.")
+    # Selecting the features from the uploaded data
+    data_features = data[feature_cols]
+
+    # Checking for numeric data and NaN values
+    if not all(pd.api.types.is_numeric_dtype(data_features[col]) for col in data_features.columns):
+        st.error("One or more selected columns are not numeric or contain NaN values.")
         return None
-    
-    # Transform the numerical columns using the fitted scaler
-    scaled_data = scaler.transform(data_for_scaling)
-    
-    # Replace the original numerical columns with the scaled ones
-    data[numerical_features] = scaled_data
+
+    # Scaling the features using the loaded scaler
+    data_scaled = scaler.transform(data_features)
+
+    # Replacing the original feature columns in the DataFrame with the scaled ones
+    data[feature_cols] = data_scaled
     
     return data
 
 def main():
     st.title('Vaccination Status Prediction and Visualization')
+    
+    # Update these paths to where your model and scaler are located
+    model_path = 'path/to/your/ridge_classifier_model.joblib'
+    scaler_path = 'path/to/your/scaler.joblib'
 
-    # Adjust these paths to where your model and scaler are located
-    model_path = 'ridge_classifier_model.joblib'
-    scaler_path = 'new_scalar_updated.joblib'
     classifier_model, scaler = load_model_and_scaler(model_path, scaler_path)
-
+    
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+    
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
         st.write("Uploaded Dataset (first 5 rows):")
@@ -63,11 +59,12 @@ def main():
         if df_processed is None:
             return
 
-        # Now, exclude 'latitude' and 'longitude' for prediction
-        features_for_prediction = df_processed.drop(columns=['latitude', 'longitude'])
+        # Assuming your model does not use 'latitude' and 'longitude' for prediction
+        # Ensure 'your_features_here' matches the exact features list used during model training
+        features_for_prediction = df_processed[['your_features_here']]
+        
         y_pred = classifier_model.predict(features_for_prediction)
-
-        # Add predictions to the DataFrame
+        
         df_processed['Predicted_Vaccination_Status'] = y_pred
 
         # Mapping predictions to status labels
@@ -77,7 +74,7 @@ def main():
         st.write("Processed and Predicted Data:")
         st.write(df_processed)
 
-        # Filter for visualization
+        # Visualization
         defaulters_df = df_processed[df_processed['Predicted_Status'].isin(['Full_Defaulter', 'Partial_Defaulter'])]
         if not defaulters_df.empty:
             visualize_defaulters(defaulters_df)
