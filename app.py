@@ -8,7 +8,7 @@ from streamlit_folium import folium_static
 def load_model_and_scaler(model_path, scaler_path):
     try:
         classifier_model = joblib.load('ridge_classifier_model.joblib')
-        scaler = joblib.load('scaler_updated.joblib')
+        scaler = joblib.load('new_scalar_updated.joblib')
         if not hasattr(scaler, 'transform'):
             raise ValueError("Loaded scaler object does not have a transform method.")
         return classifier_model, scaler
