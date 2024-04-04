@@ -5,8 +5,8 @@ import folium
 from streamlit_folium import folium_static
 
 # Assuming you've already loaded your model and scaler correctly
-# model = joblib.load('path_to_your_model.joblib')
-# scaler = joblib.load('path_to_your_scaler.joblib')
+# model = joblib.load('ridge_classifier_model.joblib')
+# scaler = joblib.load('new_scalar_updated.joblib')
 
 # Streamlit app title
 st.title('Vaccination Status Prediction')
