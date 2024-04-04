@@ -34,7 +34,11 @@ def preprocess_data(data, scaler):
         return None
 
     data_processed = data.dropna(subset=expected_cols)
-    numerical_cols = list(expected_cols - {'latitude', 'longitude'})
+    # Exclude 'latitude' and 'longitude' before scaling
+    numerical_cols = [col for col in numerical_cols if col not in ['latitude', 'longitude']]
+    scaled_data = scaler.transform(data[numerical_cols])
+    
+    return scaled_data
 
     # Ensure all selected columns are numeric
     if not all(pd.api.types.is_numeric_dtype(data_processed[col]) for col in numerical_cols):
