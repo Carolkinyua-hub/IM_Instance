@@ -7,17 +7,10 @@ from streamlit_folium import folium_static
 # Load the trained model and the pre-fitted scaler
 def load_model_and_scaler(model_path, scaler_path):
     try:
-        classifier_model = joblib.load('ridge_classifier_model.joblib')
-        scaler = joblib.load('new_scalar_updated.joblib')
+        classifier_model = joblib.load(model_path)
+        scaler = joblib.load(scaler_path)
         if not hasattr(scaler, 'transform'):
             raise ValueError("Loaded scaler object does not have a transform method.")
-        return classifier_model, scaler
-    except FileNotFoundError as e:
-        st.error(f"File not found: {e}")
-        st.stop()
-    except ValueError as e:
-        st.error(f"Validation error: {e}")
-        st.stop()
         return classifier_model, scaler
     except FileNotFoundError as e:
         st.error(f"File not found: {e}")
@@ -34,11 +27,9 @@ def preprocess_data(data, scaler):
         return None
 
     data_processed = data.dropna(subset=expected_cols)
-    # Exclude 'latitude' and 'longitude' before scaling
-    numerical_cols = [col for col in numerical_cols if col not in ['latitude', 'longitude']]
-    scaled_data = scaler.transform(data[numerical_cols])
     
-    return scaled_data
+    # Define numerical columns, excluding 'latitude' and 'longitude'
+    numerical_cols = list(expected_cols - {'latitude', 'longitude'})
 
     # Ensure all selected columns are numeric
     if not all(pd.api.types.is_numeric_dtype(data_processed[col]) for col in numerical_cols):
@@ -46,16 +37,16 @@ def preprocess_data(data, scaler):
         return None
 
     # Transform the numerical columns using the fitted scaler
-    scaled_data = scaler.transform(data_processed[numerical_cols])
-    data_processed.loc[:, numerical_cols] = scaled_data
+    data_processed[numerical_cols] = scaler.transform(data_processed[numerical_cols])
     
     return data_processed
 
 def main():
     st.title('Vaccination Status Prediction and Visualization')
 
+    # Paths should be updated according to your project structure
     model_path = 'ridge_classifier_model.joblib'
-    scaler_path = 'scalar_updated.joblib'
+    scaler_path = 'new_scalar_updated.joblib'
     classifier_model, scaler = load_model_and_scaler(model_path, scaler_path)
 
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
@@ -65,18 +56,21 @@ def main():
         st.write(df.head())
 
         df_processed = preprocess_data(df, scaler)
-        if df_processed is None:  # Stop further execution if there's an issue with the data
+        if df_processed is None:
             return
 
+        # Make predictions excluding 'latitude' and 'longitude'
         y_pred = classifier_model.predict(df_processed.drop(['latitude', 'longitude'], axis=1))
         df_processed['Predicted_Vaccination_Status'] = y_pred
 
+        # Mapping predictions to status labels
         status_mapping = {0: 'Full_Defaulter', 1: 'Partial_Defaulter', 2: 'Non_Defaulter'}
         df_processed['Predicted_Status'] = df_processed['Predicted_Vaccination_Status'].map(status_mapping)
 
         st.write("Processed and Predicted Data:")
         st.write(df_processed)
 
+        # Filter for visualization
         defaulters_df = df_processed[df_processed['Predicted_Status'].isin(['Full_Defaulter', 'Partial_Defaulter'])]
         if not defaulters_df.empty:
             visualize_defaulters(defaulters_df)
