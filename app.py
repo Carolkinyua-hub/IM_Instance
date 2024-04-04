@@ -18,8 +18,8 @@ def preprocess_data(data, scaler):
     feature_cols = ['number_of_pentavalent_doses_received',
        'number_of_pneumococcal_doses_received',
        'number_of_rotavirus_doses_received',
-       'number_of_measles_doses_received', 'number_of_polio_doses_received','latitude',
-       'longitude']
+       'number_of_measles_doses_received', 'number_of_polio_doses_received'
+    ]
     
     # Check for missing columns in the uploaded data
     missing_cols = set(feature_cols) - set(data.columns)
