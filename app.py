@@ -15,7 +15,11 @@ def load_model_and_scaler(model_path, scaler_path):
 
 def preprocess_data(data, scaler):
     # Replace 'your_features_here' with the actual features used during model training, excluding 'latitude' and 'longitude'
-    feature_cols = ['your_features_here']
+    feature_cols = ['number_of_pentavalent_doses_received',
+       'number_of_pneumococcal_doses_received',
+       'number_of_rotavirus_doses_received',
+       'number_of_measles_doses_received', 'number_of_polio_doses_received','latitude',
+       'longitude']
     
     # Check for missing columns in the uploaded data
     missing_cols = set(feature_cols) - set(data.columns)
