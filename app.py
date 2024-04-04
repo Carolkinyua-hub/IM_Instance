@@ -14,7 +14,7 @@ def get_color(Vaccination_Status):
     else:
         return 'green'
 
-# Load your trained model (ensure the path is accessible from your app's deployment environment)
+
 model = joblib.load('ridge_classifier_model.joblib')  # Update the path as needed
 scaler = joblib.load('new_scalar_updated.joblib')  # Update the path as needed
 
