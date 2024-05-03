@@ -30,7 +30,7 @@ st.title('Vaccination Status Prediction')
 def login():
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
-    if st.button("Login"):
+    if st.button("Login", key="login_button"):
         user = app.login(email, password)
         if user:
             st.success(f"Logged in as {user.username}")
@@ -47,7 +47,9 @@ def register():
     password = st.text_input("Password", type="password")
     confirm_password = st.text_input("Confirm Password", type="password")
 
-    if st.button("Register"):
+    register_button_label = "Register"
+    register_button_key = "register_button_" + email  # Unique key based on email
+    if st.button(register_button_label, key=register_button_key):
         if password == confirm_password:
             if app.create_user(username, email, password):
                 st.success("Account created successfully. You can now login.")
