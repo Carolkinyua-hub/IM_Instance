@@ -1,4 +1,20 @@
 import streamlit as st
+from data_model import User, Post, StreamlitApp
+
+# Create an instance of your Streamlit application
+app = StreamlitApp()
+
+# Define Streamlit app layout and interactions
+def main():
+    st.title("Streamlit Application")
+
+    # Add Streamlit components and interactions here
+    # For example, forms for user registration, post creation, etc.
+    # You would call methods of the `app` instance to interact with your data model
+
+if __name__ == "__main__":
+    main()
+
 import pandas as pd
 import joblib
 import folium
