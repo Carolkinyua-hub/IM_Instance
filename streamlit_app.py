@@ -39,7 +39,7 @@ class StreamlitApp:
         self.cursor.execute(select_user_query, (email, password))
         user = self.cursor.fetchone()
         if user:
-            return User(user[1], user[2], user[3])
+            return user  # Returning the user row
         else:
             return None  # Invalid email or password
 
