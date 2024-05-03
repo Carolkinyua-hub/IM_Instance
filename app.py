@@ -47,8 +47,7 @@ def register():
     password = st.text_input("Password", type="password")
     confirm_password = st.text_input("Confirm Password", type="password")
 
-    register_button = st.button("Register")
-    if register_button:
+    if st.button("Register"):
         if password == confirm_password:
             if app.create_user(username, email, password):
                 st.success("Account created successfully. You can now login.")
@@ -59,7 +58,8 @@ def register():
 
 # Main function
 def main():
-    if st.sidebar.button("Register"):
+    registration_button_clicked = st.sidebar.button("Register")
+    if registration_button_clicked:
         register()
     else:
         if not login():
