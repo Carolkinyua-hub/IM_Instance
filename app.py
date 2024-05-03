@@ -39,6 +39,23 @@ def login():
             st.error("Invalid email or password")
             return False
 
+# Registration form
+def register():
+    st.subheader("Create an Account")
+    username = st.text_input("Username")
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    confirm_password = st.text_input("Confirm Password", type="password")
+
+    if st.button("Register"):
+        if password == confirm_password:
+            if app.create_user(username, email, password):
+                st.success("Account created successfully. You can now login.")
+            else:
+                st.error("An account with this email already exists.")
+        else:
+            st.error("Passwords do not match.")
+
 # Upload CSV file if logged in
 def upload_file():
     uploaded_file = st.file_uploader("Choose a file")
@@ -92,9 +109,17 @@ def upload_file():
 
 # Main function
 def main():
-    if not login():
-        return
-    upload_file()
+    # Add registration link
+    st.subheader("Don't have an account?")
+    st.write("Create one [here](#)")
+
+    # If anchor link is clicked, display registration form
+    if st.button("Register"):
+        register()
+    else:
+        if not login():
+            return
+        upload_file()
 
 if __name__ == "__main__":
     main()
