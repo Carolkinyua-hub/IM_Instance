@@ -40,25 +40,36 @@ if uploaded_file is not None:
     # Make predictions
     y_pred = model.predict(features_scaled)
 
-    # Add predictions to the DataFrame
-    status_mapping = {0: 'Full_Defaulter', 1: 'Partial_Defaulter', 2: 'Non_Defaulter'}
-    df2['Predicted_Status'] = [status_mapping[pred] for pred in y_pred]
+    import folium
+from folium.plugins import HeatMap
+from streamlit_folium import folium_static
 
-    # Generate map
-    mean_lat = df2['latitude'].mean()
-    mean_long = df2['longitude'].mean()
-    vaccination_map = folium.Map(location=[mean_lat, mean_long], zoom_start=6)
+# Add predictions to the DataFrame
+status_mapping = {0: 'Full_Defaulter', 1: 'Partial_Defaulter', 2: 'Non_Defaulter'}
+df2['Predicted_Status'] = [status_mapping[pred] for pred in y_pred]
 
-    for idx, row in df2.iterrows():
-        folium.CircleMarker(
-            location=[row['latitude'], row['longitude']],
-            radius=5,
-            color=get_color(row['Predicted_Status']),
-            fill=True,
-            fill_color=get_color(row['Predicted_Status']),
-            fill_opacity=0.7,
-            popup=row['Predicted_Status']
-        ).add_to(vaccination_map)
+# Generate map
+mean_lat = df2['latitude'].mean()
+mean_long = df2['longitude'].mean()
+vaccination_map = folium.Map(location=[mean_lat, mean_long], zoom_start=6)
 
-    # Display map in Streamlit
-    folium_static(vaccination_map)
+# Add points to the map based on the predicted vaccination status
+for idx, row in df2.iterrows():
+    folium.CircleMarker(
+        location=[row['latitude'], row['longitude']],
+        radius=5,
+        color=get_color(row['Predicted_Status']),
+        fill=True,
+        fill_color=get_color(row['Predicted_Status']),
+        fill_opacity=0.7,
+        popup=row['Predicted_Status']
+    ).add_to(vaccination_map)
+
+# Convert latitude and longitude to list of lists
+heat_data = [[row['latitude'], row['longitude']] for idx, row in df2.iterrows()]
+
+# Add heatmap layer
+HeatMap(heat_data).add_to(vaccination_map)
+
+# Display map in Streamlit
+folium_static(vaccination_map)
