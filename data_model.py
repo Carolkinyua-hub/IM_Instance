@@ -1,42 +1,47 @@
-class User:
-    def __init__(self, username, email, password):
-        self.username = username
-        self.email = email
-        self.password = password
-
-class Post:
-    def __init__(self, title, content, author):
-        self.title = title
-        self.content = content
-        self.author = author
-        self.likes = 0
-        self.comments = []
-
-    def add_comment(self, comment):
-        self.comments.append(comment)
+import sqlite3
 
 class StreamlitApp:
-    def __init__(self):
-        self.users = {}
-        self.posts = []
+    def __init__(self, db_name='streamlit_db.sqlite'):
+        self.db_name = db_name
+        self.connection = sqlite3.connect(db_name)
+        self.cursor = self.connection.cursor()
+        self.create_table()
+
+    def create_table(self):
+        create_users_table = """
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY,
+            username TEXT,
+            email TEXT UNIQUE,
+            password TEXT
+        );
+        """
+        self.cursor.execute(create_users_table)
+        self.connection.commit()
 
     def create_user(self, username, email, password):
-        if email in self.users:
-            return None  # User with this email already exists
-        user = User(username, email, password)
-        self.users[email] = user
-        return user
+        try:
+            insert_user_query = """
+            INSERT INTO users (username, email, password)
+            VALUES (?, ?, ?);
+            """
+            self.cursor.execute(insert_user_query, (username, email, password))
+            self.connection.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False  # User with this email already exists
 
-    def create_post(self, title, content, author_email):
-        if author_email not in self.users:
-            return None  # Author does not exist
-        author = self.users[author_email]
-        post = Post(title, content, author)
-        self.posts.append(post)
-        return post
+    def login(self, email, password):
+        select_user_query = """
+        SELECT * FROM users
+        WHERE email = ? AND password = ?;
+        """
+        self.cursor.execute(select_user_query, (email, password))
+        user = self.cursor.fetchone()
+        if user:
+            return User(user[1], user[2], user[3])
+        else:
+            return None  # Invalid email or password
 
-    def like_post(self, post):
-        post.likes += 1
-
-    def comment_on_post(self, post, comment):
-        post.add_comment(comment)
+    def __del__(self):
+        self.connection.close()
