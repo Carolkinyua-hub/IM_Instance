@@ -42,7 +42,6 @@ def login():
 # Registration form
 def register():
     st.subheader("Create an Account")
-    username = st.text_input("Username")
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
     confirm_password = st.text_input("Confirm Password", type="password")
