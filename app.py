@@ -5,9 +5,7 @@ import folium
 from folium.plugins import HeatMap
 from streamlit_folium import folium_static
 from sklearn.preprocessing import StandardScaler
-
-# Import the User and StreamlitApp classes
-from data_model import User, StreamlitApp
+from streamlit_app import StreamlitApp  # Importing StreamlitApp class for user authentication
 
 # Create an instance of StreamlitApp
 app = StreamlitApp()
