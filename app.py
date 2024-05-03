@@ -26,94 +26,60 @@ scaler = joblib.load('new_scalar_updated.joblib')  # Update the path as needed
 # Streamlit app title
 st.title('Vaccination Status Prediction')
 
-# Login form
-def login():
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-    if st.button("Login", key="login_button"):
-        user = app.login(email, password)
-        if user:
-            st.success(f"Logged in as {user.username}")
-            return True
-        else:
-            st.error("Invalid email or password")
-            return False
+# Upload CSV file if logged in
+def upload_file():
+    uploaded_file = st.file_uploader("Choose a file")
+    if uploaded_file is not None:
+        df2 = pd.read_csv(uploaded_file)
 
-# Registration form
-def register():
-    st.subheader("Create an Account")
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-    confirm_password = st.text_input("Confirm Password", type="password")
+        # Select columns for prediction
+        features_for_prediction = df2[['number_of_pentavalent_doses_received',
+                                       'number_of_pneumococcal_doses_received',
+                                       'number_of_rotavirus_doses_received',
+                                       'number_of_measles_doses_received',
+                                       'number_of_polio_doses_received',
+                                       'latitude',
+                                       'longitude']]
 
-    register_button_label = "Register"
-    register_button_key = "register_button_" + email  # Unique key based on email
-    if st.button(register_button_label, key=register_button_key):
-        if password == confirm_password:
-            if app.create_user(username, email, password):
-                st.success("Account created successfully. You can now login.")
-            else:
-                st.error("An account with this email already exists.")
-        else:
-            st.error("Passwords do not match.")
+        # Scale features using the scaler object
+        features_scaled = scaler.transform(features_for_prediction)
+
+        # Make predictions
+        y_pred = model.predict(features_scaled)
+
+        # Add predictions to the DataFrame
+        status_mapping = {0: 'Full_Defaulter', 1: 'Partial_Defaulter', 2: 'Non_Defaulter'}
+        df2['Predicted_Status'] = [status_mapping[pred] for pred in y_pred]
+
+        # Generate map
+        mean_lat = df2['latitude'].mean()
+        mean_long = df2['longitude'].mean()
+        vaccination_map = folium.Map(location=[mean_lat, mean_long], zoom_start=6)
+
+        # Add points to the map based on the predicted vaccination status
+        for idx, row in df2.iterrows():
+            folium.CircleMarker(
+                location=[row['latitude'], row['longitude']],
+                radius=5,
+                color=get_color(row['Predicted_Status']),
+                fill=True,
+                fill_color=get_color(row['Predicted_Status']),
+                fill_opacity=0.7,
+                popup=row['Predicted_Status']
+            ).add_to(vaccination_map)
+
+        # Convert latitude and longitude to list of lists
+        heat_data = [[row['latitude'], row['longitude']] for idx, row in df2.iterrows()]
+
+        # Add heatmap layer
+        HeatMap(heat_data).add_to(vaccination_map)
+
+        # Display map in Streamlit
+        folium_static(vaccination_map)
 
 # Main function
 def main():
-    registration_button_clicked = st.sidebar.button("Register")
-    if registration_button_clicked:
-        register()
-    else:
-        if not login():
-            return
-
-        uploaded_file = st.file_uploader("Choose a file")
-        if uploaded_file is not None:
-            df2 = pd.read_csv(uploaded_file)
-
-            # Select columns for prediction
-            features_for_prediction = df2[['number_of_pentavalent_doses_received',
-                                           'number_of_pneumococcal_doses_received',
-                                           'number_of_rotavirus_doses_received',
-                                           'number_of_measles_doses_received',
-                                           'number_of_polio_doses_received',
-                                           'latitude',
-                                           'longitude']]
-
-            # Scale features using the scaler object
-            features_scaled = scaler.transform(features_for_prediction)
-
-            # Make predictions
-            y_pred = model.predict(features_scaled)
-
-            # Add predictions to the DataFrame
-            status_mapping = {0: 'Full_Defaulter', 1: 'Partial_Defaulter', 2: 'Non_Defaulter'}
-            df2['Predicted_Status'] = [status_mapping[pred] for pred in y_pred]
-
-            # Generate map
-            mean_lat = df2['latitude'].mean()
-            mean_long = df2['longitude'].mean()
-            vaccination_map = folium.Map(location=[mean_lat, mean_long], zoom_start=6)
-
-            # Add points to the map based on the predicted vaccination status
-            for idx, row in df2.iterrows():
-                folium.CircleMarker(
-                    location=[row['latitude'], row['longitude']],
-                    radius=5,
-                    color=get_color(row['Predicted_Status']),
-                    fill=True,
-                    fill_color=get_color(row['Predicted_Status']),
-                    fill_opacity=0.7,
-                    popup=row['Predicted_Status']
-                ).add_to(vaccination_map)
-
-            # Convert latitude and longitude to list of lists
-            heat_data = [[row['latitude'], row['longitude']] for idx, row in df2.iterrows()]
-
-            # Add heatmap layer
-            HeatMap(heat_data).add_to(vaccination_map)
-
-            # Display map in Streamlit
-            folium_static(vaccination_map)
+    upload_file()
 
 if __name__ == "__main__":
     main()
